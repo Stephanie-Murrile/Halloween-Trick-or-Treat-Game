@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Candy Lantern Lane | Halloween Neighborhood Adventure
+  </title>
+  <style>
+   
+    :root{
+        font-family:system-ui,'Trebuchet MS',sans-serif;
+        color:#34254a;
+        background:#f9e9df
+    }
+    *{
+        box-sizing:border-box
+    }
+    body{
+        margin:0;
+        background:radial-gradient(circle at 50% 0,#fff5e3,#efdbed 65%,#e0cce5);
+        min-height:100vh
+    }
+    main{
+        max-width:1160px;
+        margin:auto;
+        padding:18px
+    }
+    header{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:15px;
+        flex-wrap:wrap;
+        margin-bottom:12px
+    }
+    h1{
+        font-size:clamp(26px,4vw,44px);
+        letter-spacing:-1.5px;
+        margin:0;
+        color:#502b69
+    }
+    header p{
+        margin:2px 0;
+        color:#8c668c;
+        font-weight:600
+    }
+    .tag{
+        background:#fff;
+        border:2px solid #ebc3d8;
+        border-radius:30px;
+        padding:9px 16px;
+        font-weight:800;
+        color:#985279
+    }
+    .shell{
+        position:relative;
+        border:8px solid #fff;
+        border-radius:28px;
+        overflow:hidden;
+        box-shadow:0 18px 50px #7e508044;
+        background:#d1e9e6
+    }
+    canvas#world{
+        display:block;
+        width:100%;
+        height:auto;
+        touch-action:none
+    }
+    .hud{
+        position:absolute;
+        top:14px;
+        left:14px;
+        right:14px;
+        display:flex;
+        gap:9px;
+        flex-wrap:wrap;
+        pointer-events:none
+    }
+    .stat{
+        background:#fffdf5ed;
+        color:#513858;
+        padding:8px 14px;
+        border-radius:25px;
+        box-shadow:0 3px 0 #d4a7bd;
+        font-size:14px;
+        font-weight:900
+    }
+    .toast{
+        position:absolute;
+        bottom:20px;
+        left:50%;
+        transform:translateX(-50%);
+        max-width:90%;
+        background:#fff9e9;
+        color:#6e3a65;
+        padding:12px 20px;
+        border:3px solid #f4bb7b;
+        border-radius:20px;
+        text-align:center;
+        font-weight:900;
+        box-shadow:0 8px 20px #64394b44;
+        opacity:0;
+        transition:opacity .2s;
+        pointer-events:none
+    }
+    .toast.show{
+        opacity:1
+    }
+    .screen{
+        position:absolute;
+        inset:0;
+        background:#48335cbf;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        padding:15px;
+        overflow:auto
+    }
+    .modal{
+        width:min(740px,100%);
+        max-height:100%;
+        overflow:auto;
+        background:#fff9ee;
+        border:7px solid #fff;
+        border-radius:28px;
+        padding:24px;
+        text-align:center;
+        box-shadow:0 14px 0 #8b668a,0 22px 50px #24182b77
+    }
+    .modal h2{
+        font-size:clamp(25px,4vw,38px);
+        color:#743b85;
+        margin:0 0 8px;
+        letter-spacing:-1px
+    }
+    .modal p{
+        color:#846a84;
+        line-height:1.5;
+        margin:6px auto 16px;
+        max-width:570px
+    }
+    .choices{
+        display:grid;
+        grid-template-columns:repeat(4,1fr);
+        gap:12px;
+        margin:18px 0
+    }
+    .choice{
+        border:3px solid #ead6e2;
+        border-radius:19px;
+        background:#fff;
+        color:#673b73;
+        padding:9px 6px;
+        cursor:pointer;
+        font:800 14px system-ui;
+        transition:.15s
+    }
+    .choice:hover{
+        transform:translateY(-3px)
+    }
+    .choice[aria-pressed=true]{
+        border-color:#d774ad;
+        background:#ffebf5;
+        box-shadow:0 5px 0 #e8a7c9
+    }
+    .choice canvas{
+        width:100%;
+        max-width:120px;
+        height:130px;
+        display:block;
+        margin:auto
+    }
+    .primary{
+        background:linear-gradient(#ffba65,#f68c57);
+        color:#512e53;
+        border:0;
+        border-bottom:5px solid #c86c59;
+        border-radius:18px;
+        padding:13px 32px;
+        font:900 19px system-ui;
+        cursor:pointer
+    }
+    .primary:active{
+        transform:translateY(3px);
+        border-bottom-width:2px
+    }
+    .controls{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        padding:14px 4px
+    }
+    .dpad{
+        display:grid;
+        grid-template-columns:repeat(3,53px);
+        grid-template-rows:repeat(2,48px);
+        gap:5px
+    }
+    .dpad button,.knock{
+        border:2px solid #b88bb7;
+        border-radius:13px;
+        background:#fff7f0;
+        color:#74447b;
+        font-weight:900;
+        font-size:21px;
+        touch-action:none;
+        user-select:none;
+        cursor:pointer
+    }
+    .dpad button:active,.knock:active{
+        background:#ffd3dc
+    }
+    .dpad [data-m=up]{
+        grid-column:2
+    }
+    .dpad [data-m=left]{
+        grid-column:1;
+        grid-row:2
+    }
+    .dpad [data-m=down]{
+        grid-column:2;
+        grid-row:2
+    }
+    .dpad [data-m=right]{
+        grid-column:3;
+        grid-row:2
+    }
+    .knock{
+        padding:16px 22px;
+        background:#f8bad0;
+        font-size:16px
+    }
+    .instructions{
+        text-align:center;
+        color:#926d91;
+        font-size:13px;
+        font-weight:700;
+        margin:0 0 12px
+    }
+    @media(min-width:850px){
+        .controls{
+            display:none
+        }
+        .instructions{
+            margin-top:14px
+        }
+    }
+    @media(max-width:600px){
+        main{
+            padding:7px
+        }
+        .shell{
+            border-width:4px;
+            border-radius:17px
+        }
+        .hud{
+            top:5px;
+            left:5px;
+            gap:4px
+        }
+        .stat{
+            padding:4px 7px;
+            font-size:10px
+        }
+        .modal{
+            padding:12px;
+            border-width:4px
+        }
+        .choices{
+            grid-template-columns:repeat(2,1fr);
+            gap:7px
+        }
+        .choice canvas{
+            height:85px
+        }
+        .choice{
+            font-size:12px;
+            padding:4px
+        }
+        .toast{
+            font-size:12px;
+            padding:6px 10px;
+            bottom:6px
+        }
+        header{
+            padding:8px
+        }
+        .tag{
+            display:none
+        }
+    }
+
+  </style>
+ </head>
+ <body>
+  <main>
+   <header>
+    <div>
+     <h1>
+      🍬 Candy Lantern Lane
+     </h1>
+     <p>
+      A storybook trick-or-treat adventure
+     </p>
+    </div>
+    <div class="tag">
+     A little magic. A lot of candy. ✨
+    </div>
+   </header>
+   <section aria-label="Trick or treat game" class="shell">
+    <canvas height="640" id="world" width="1100">
+    </canvas>
+    <div class="hud">
+     <span class="stat" id="candy">
+      🍬 0 candies
+     </span>
+     <span class="stat" id="visited">
+      🏡 0 / 8 homes
+     </span>
+     <span class="stat" id="timer">
+      ⏳ 3:00
+     </span>
+    </div>
+    <div class="toast" id="toast" role="status">
+    </div>
+    <div class="screen" id="screen">
+     <div class="modal" id="modal">
+     </div>
+    </div>
+   </section>
+   <div class="controls">
+    <div class="dpad">
+     <button aria-label="Move up" data-m="up">
+      ▲
+     </button>
+     <button aria-label="Move left" data-m="left">
+      ◀
+     </button>
+     <button aria-label="Move down" data-m="down">
+      ▼
+     </button>
+     <button aria-label="Move right" data-m="right">
+      ▶
+     </button>
+    </div>
+    <button class="knock" id="knock">
+     🔔 Ring Doorbell
+    </button>
+   </div>
+   <p class="instructions">
+    Move with WASD or arrow keys · Ring a doorbell with E or Space · Visit all eight houses before time runs out!
+   </p>
+  </main>
+  <script>
+   
+    (() => {
+        'use strict'; const canvas = document.querySelector('#world'); let ctx = canvas.getContext('2d'); const screen = document.querySelector('#screen'); const modal = document.querySelector('#modal'); const toast = document.querySelector('#toast'); const W = canvas.width, H = canvas.height; const keys = new Set(); const outfits = ['Rainbow Unicorn', 'Friendly Dragon', 'Starry Wizard', 'Bumblebee']; const homes = [   {
+            x:75,y:75,c:'#f8b4b2',roof:'#bd718f',name:'Rosebud House'
+        }
+        ,   {
+            x:335,y:75,c:'#f7d49e',roof:'#cf9879',name:'Honeycomb House'
+        }
+        ,   {
+            x:615,y:75,c:'#b5dcd5',roof:'#729eae',name:'Seashell House'
+        }
+        ,   {
+            x:875,y:75,c:'#cfc2f3',roof:'#9285bd',name:'Lavender House'
+        }
+        ,   {
+            x:75,y:433,c:'#d4c2f2',roof:'#9984bc',name:'Moonflower House'
+        }
+        ,   {
+            x:335,y:433,c:'#bde2b9',roof:'#7eb2a3',name:'Clover House'
+        }
+        ,   {
+            x:615,y:433,c:'#ffd0a9',roof:'#d99280',name:'Peach House'
+        }
+        ,   {
+            x:875,y:433,c:'#f6bad4',roof:'#ba81aa',name:'Sweetberry House'
+        }
+        ]; let selected = 0, mode = 'menu', time = 180, candies = 0, visited = new Set(); let player = {
+            x:550,y:320,walk:0
+        }
+        , last = 0, tick = 0, particles = [], cooldown = 0, toastTimeout; const random = (a,b) => a + Math.random()*(b-a); function shape(x,y,w,h,color,r=0){
+            ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()
+        }
+        function oval(x,y,rx,ry,color){
+            ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fill()
+        }
+        function line(x1,y1,x2,y2,color,width=3){
+            ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()
+        }
+        function label(s,x,y,size=15,color='#6b456d'){
+            ctx.font=`900 ${size}px system-ui`;ctx.textAlign='center';ctx.lineWidth=3;ctx.strokeStyle='#fff7e9';ctx.strokeText(s,x,y);ctx.fillStyle=color;ctx.fillText(s,x,y)
+        }
+        function star(x,y,r=7,color='#fff1ab'){
+            ctx.fillStyle=color;ctx.beginPath();for(let i=0;i<10;i++){
+                let a=-Math.PI/2+i*Math.PI/5,rr=i%2?r*.45:r;let px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)
+            }
+            ctx.closePath();ctx.fill()
+        }
+        function pumpkin(x,y,s=1){
+            ctx.save();ctx.translate(x,y);ctx.scale(s,s);oval(0,0,17,14,'#e58d55');oval(-7,0,9,13,'#ffb96b');oval(7,0,9,13,'#ffad5c');shape(-2,-20,5,9,'#689c78',2);oval(-5,-2,2,2,'#70465e');oval(5,-2,2,2,'#70465e');ctx.strokeStyle='#70465e';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,1,6,0.2,Math.PI-.2);ctx.stroke();ctx.restore()
+        }
+        function character(x,y,s=1,type=selected,step=0){
+            ctx.save();ctx.translate(x,y+Math.sin(step)*2);ctx.scale(s,s);oval(0,8,24,7,'#65527533');line(-10,-1,-10,15,'#6e577f',8);line(10,-1,10,15,'#6e577f',8);oval(0,-14,24,29,['#f9effa','#a7d5a7','#7b79bf','#ffd67c'][type]);oval(0,-38,19,20,['#fff3f5','#8ed4ac','#e4c1ec','#f7d4ac'][type]);if(type===0){
+                ctx.fillStyle='#f7d27e';ctx.beginPath();ctx.moveTo(-3,-55);ctx.lineTo(5,-79);ctx.lineTo(10,-53);ctx.fill();oval(-16,-57,9,12,'#f8a8d3');oval(16,-57,9,12,'#f8a8d3');for(let i=0;i<3;i++)oval(-18+i*12,-13,5,14,['#ee98d2','#b9c9f5','#ffe69b'][i])
+            }
+            if(type===1){
+                oval(-17,-49,8,13,'#78c6a0');oval(17,-49,8,13,'#78c6a0');for(let i=0;i<3;i++)star(-12+i*12,-8,5,'#f5db7d');ctx.fillStyle='#74b18e';ctx.beginPath();ctx.moveTo(-22,-11);ctx.lineTo(-38,-32);ctx.lineTo(-32,0);ctx.fill()
+            }
+            if(type===2){
+                ctx.fillStyle='#5d5d9d';ctx.beginPath();ctx.moveTo(-24,-54);ctx.lineTo(0,-91);ctx.lineTo(24,-54);ctx.fill();shape(-29,-58,58,9,'#5d5d9d',4);star(0,-68,7);star(-13,-15,5);star(14,-4,5)
+            }
+            if(type===3){
+                shape(-22,-26,44,10,'#6a526e',5);shape(-22,-7,44,9,'#6a526e',5);oval(-24,-22,12,18,'#e9f2fa99');oval(24,-22,12,18,'#e9f2fa99');line(-8,-54,-13,-66,'#674e72',3);line(8,-54,13,-66,'#674e72',3);oval(-13,-66,4,4,'#f2a6ba');oval(13,-66,4,4,'#f2a6ba')
+            }
+            oval(-7,-40,2.6,3.4,'#54435e');oval(7,-40,2.6,3.4,'#54435e');ctx.strokeStyle='#aa6681';ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,-35,5,.15,Math.PI-.15);ctx.stroke();line(-23,-20,-30,-4,'#f0c1a6',7);line(23,-20,30,-4,'#f0c1a6',7);shape(22,-5,22,18,'#e9a46c',5);shape(23,-8,20,7,'#ffe1a5',3);star(33,2,5,'#fff2c5');ctx.restore()
+        }
+        function home(h,i){
+            const {
+                x,y,c,roof
+            }
+            =h;oval(x+75,y+157,92,13,'#69858d33');shape(x+9,y+48,132,103,c,14);ctx.fillStyle=roof;ctx.beginPath();ctx.moveTo(x-4,y+54);ctx.lineTo(x+75,y-7);ctx.lineTo(x+154,y+54);ctx.closePath();ctx.fill();line(x+8,y+49,x+75,y-3,'#fff1e6',5);line(x+75,y-3,x+142,y+49,'#fff1e6',5);shape(x+18,y+69,32,38,'#fff0b9',9);shape(x+100,y+69,32,38,'#fff0b9',9);line(x+34,y+69,x+34,y+107,roof,3);line(x+116,y+69,x+116,y+107,roof,3);line(x+18,y+88,x+50,y+88,roof,3);line(x+100,y+88,x+132,y+88,roof,3);shape(x+58,y+98,36,53,visited.has(i)?'#a6b6b4':'#926a94',[12,12,0,0]);oval(x+84,y+127,3,3,'#ffe9b3');shape(x-1,y+148,152,8,'#fff2e0',5);pumpkin(x+9,y+148,.65);pumpkin(x+140,y+148,.65);label(h.name,x+75,y+176,13);if(visited.has(i)){
+                star(x+75,y+86,12,'#b9e8a8')
+            }
+            else{
+                oval(x+75,y+85,15,15,'#ffedac');label('!',x+75,y+91,19,'#b27a74')
+            }
+        }
+        function background(){
+            const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#8fb8d7');grad.addColorStop(.55,'#f7c8bd');grad.addColorStop(1,'#d2d8bc');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);oval(840,65,55,55,'#fff3cb');oval(840,65,74,74,'#fff5d844');for(let i=0;i<18;i++)star((i*157+28)%W,28+(i*39)%135,2.5,'#fff9e5');for(let i=0;i<11;i++){
+                let x=i*115-20;oval(x,215,100,65,'#a9c7b8');oval(x+30,450,105,70,'#a5c8ad')
+            }
+            shape(0,235,W,185,'#e3d9cf',18);shape(0,247,W,161,'#f7e9d7',15);for(let i=0;i<13;i++){
+                shape(i*90+15,317,45,6,'#f9c3a4',3)
+            }
+            shape(0,218,W,13,'#fff6e6',4);shape(0,417,W,13,'#fff6e6',4);for(let i=0;i<8;i++)home(homes[i],i);for(let i=0;i<10;i++){
+                let x=i*115+32;oval(x,224,21,11,'#a4c9a5');oval(x,429,21,11,'#a4c9a5');for(let j=0;j<3;j++){
+                    oval(x-10+j*10,215+(j%2)*4,4,4,['#fff1ae','#ffbdd2','#f7e4ef'][j]);oval(x-10+j*10,435+(j%2)*4,4,4,['#fff1ae','#ffbdd2','#f7e4ef'][j])
+                }
+            }
+            for(let i=0;i<5;i++){
+                let x=160+i*215;shape(x,258,6,32,'#8d7893',3);oval(x+3,255,15,19,'#fff2c3');oval(x+3,255,28,29,'#fff2c329')
+            }
+            for(let i=0;i<12;i++){
+                let x=(i*103+tick*13)%W,y=200+Math.sin(tick+i)*15+(i%4)*65;star(x,y,3,'#fff5bd')
+            }
+        }
+        function nearest(){
+            let best=null;homes.forEach((h,i)=>{
+                let tx=h.x+75,ty=i<4?252:413;let d=Math.hypot(player.x-tx,player.y-ty);if(!best||d<best.d)best={
+                    i,h,d
+                }
+            }
+            );return best
+        }
+        function notify(s){
+            toast.textContent=s;toast.classList.add('show');clearTimeout(toastTimeout);toastTimeout=setTimeout(()=>toast.classList.remove('show'),2400)
+        }
+        function updateHud(){
+            document.querySelector('#candy').textContent=`🍬 ${candies} candies`;document.querySelector('#visited').textContent=`🏡 ${visited.size} / 8 homes`;document.querySelector('#timer').textContent=`⏳ ${Math.floor(time/60)}:${String(Math.floor(time%60)).padStart(2,'0')}`
+        }
+        function ring(){
+            if(mode!=='play'||cooldown>0)return;const n=nearest();if(!n||n.d>95){
+                notify('Walk closer to a front door to ring its bell!');return
+            }
+            if(visited.has(n.i)){
+                notify('You already visited this lovely home!');return
+            }
+            visited.add(n.i);cooldown=.5;const gain=5+Math.floor(Math.random()*11);candies+=gain;for(let i=0;i<18;i++)particles.push({
+                x:player.x,y:player.y-45,vx:random(-110,110),vy:random(-170,-50),life:1.2,color:['#ffbb74','#ed92bd','#ffe9a0','#a2dcd0'][i%4]
+            }
+            );notify(`${n.h.name} gave you ${gain} delicious candies! 🍭`);updateHud();if(visited.size===8)setTimeout(()=>end(true),850)
+        }
+        function end(won){
+            if(mode!=='play')return;mode='end';screen.style.display='flex';modal.innerHTML=`<h2>${won?'🎉 Neighborhood Champion!':'🌙 What a Sweet Night!'}</h2><p style="font-size:20px">You collected <strong>${candies} candies</strong> and visited <strong>${visited.size} of 8 houses</strong>.</p><p>${won?'You visited every home! Your neighbors are cheering!':'There are more treats waiting next time!'}</p><button class="primary" id="again">Play Again ✨</button>`;document.querySelector('#again').onclick=menu
+        }
+        function start(){
+            mode='play';screen.style.display='none';time=180;candies=0;visited.clear();player={
+                x:550,y:320,walk:0
+            }
+            ;particles=[];cooldown=0;updateHud();notify('Follow the lane, find a glowing doorbell, and ring!')
+        }
+        function menu(){
+            mode='menu';screen.style.display='flex';modal.innerHTML='<h2>Choose your costume! ✨</h2><p>Explore a candy-colored neighborhood, visit eight friendly homes, and collect as many treats as you can before the night is over.</p><div class="choices" id="choices"></div><button class="primary" id="start">Start Trick-or-Treating 🍬</button>';const choices=document.querySelector('#choices');outfits.forEach((name,i)=>{
+                const b=document.createElement('button');b.className='choice';b.setAttribute('aria-pressed',String(selected===i));b.innerHTML=`<canvas width="130" height="140"></canvas><span>${name}</span>`;choices.append(b);const preview=b.querySelector('canvas').getContext('2d');const original=ctx;ctx=preview;character(65,112,1.15,i,0);ctx=original;b.onclick=()=>{
+                    selected=i;choices.querySelectorAll('button').forEach(v=>v.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true')
+                }
+            }
+            );document.querySelector('#start').onclick=start
+        }
+        function update(dt){
+            tick+=dt;if(mode!=='play')return;time=Math.max(0,time-dt);cooldown=Math.max(0,cooldown-dt);if(time===0){
+                end(false);return
+            }
+            let dx=0,dy=0;if(keys.has('a')||keys.has('arrowleft')||keys.has('left'))dx--;if(keys.has('d')||keys.has('arrowright')||keys.has('right'))dx++;if(keys.has('w')||keys.has('arrowup')||keys.has('up'))dy--;if(keys.has('s')||keys.has('arrowdown')||keys.has('down'))dy++;if(dx||dy){
+                let l=Math.hypot(dx,dy);player.x=Math.max(25,Math.min(W-25,player.x+dx/l*230*dt));player.y=Math.max(247,Math.min(402,player.y+dy/l*230*dt));player.walk+=dt*13
+            }
+            for(const p of particles){
+                p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=210*dt;p.life-=dt
+            }
+            particles=particles.filter(p=>p.life>0);updateHud()
+        }
+        function draw(){
+            background();for(const p of particles){
+                ctx.globalAlpha=Math.max(0,p.life/1.2);star(p.x,p.y,9,p.color)
+            }
+            ctx.globalAlpha=1;character(player.x,player.y,1.3,selected,player.walk);if(mode==='play'){
+                const n=nearest();if(n&&n.d<95&&!visited.has(n.i))label('🔔 Press E / Space to ring!',n.h.x+75,n.i<4?278:406,16,'#7c4680')
+            }
+        }
+        function loop(ts){
+            let dt=Math.min(.05,(ts-last)/1000||0);last=ts;update(dt);draw();requestAnimationFrame(loop)
+        }
+        window.addEventListener('keydown',e=>{
+            const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k))e.preventDefault();keys.add(k);if((k==='e'||k===' ')&&!e.repeat)ring()
+        }
+        );window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());document.querySelectorAll('[data-m]').forEach(b=>{
+            const d=b.dataset.m;b.addEventListener('pointerdown',e=>{
+                e.preventDefault();keys.add(d);b.setPointerCapture(e.pointerId)
+            }
+            );for(const type of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(type,()=>keys.delete(d))
+        }
+        );document.querySelector('#knock').onclick=ring;menu();requestAnimationFrame(loop);
+    }
+    )();
+
+  </script>
+ </body>
+</html>
